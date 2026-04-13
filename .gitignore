@@ -1,8 +1,15 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# =========================
+# 🔐 ENV FILES (CRITICAL)
+# =========================
+.env
+.env.*
+!.env.example
 
-# dependencies
-/node_modules
-/.pnp
+# =========================
+# 📦 DEPENDENCIES
+# =========================
+node_modules/
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,32 +17,80 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# =========================
+# 🧪 TESTING
+# =========================
+coverage/
+*.lcov
 
-# next.js
-/.next/
-/out/
+# =========================
+# ⚡ NEXT.JS BUILD FILES
+# =========================
+.next/
+out/
+build/
 
-# production
-/build
+# =========================
+# 🖥️ BACKEND BUILD (if any)
+# =========================
+dist/
+tmp/
+temp/
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# =========================
+# 🧾 LOG FILES
+# =========================
+logs/
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
+pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# =========================
+# 💻 OS FILES
+# =========================
+.DS_Store
+Thumbs.db
 
-# vercel
+# =========================
+# 🔑 KEYS & SECRETS
+# =========================
+*.pem
+*.key
+*.crt
+
+# =========================
+# 🚀 DEPLOYMENT
+# =========================
 .vercel
+.render
+.netlify
 
-# typescript
+# =========================
+# 🧠 TYPESCRIPT
+# =========================
 *.tsbuildinfo
 next-env.d.ts
+
+# =========================
+# 🧹 CACHE FILES
+# =========================
+.cache/
+.parcel-cache/
+.eslintcache
+
+# =========================
+# 🖼️ OPTIONAL (if uploads local)
+# =========================
+uploads/
+public/uploads/
+
+# =========================
+# 🧪 MISC
+# =========================
+*.swp
+*.swo
+*.bak
+.idea/
+.vscode/
