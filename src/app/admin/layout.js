@@ -14,11 +14,13 @@ function AdminLayoutInner({ children }) {
   const pathname = usePathname();
   const isLoginPage = pathname === "/admin/login";
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated && !isLoginPage) {
-      router.push("/admin/login");
-    }
-  }, [loading, isAuthenticated, pathname]);
+useEffect(() => {
+  if (loading) return;
+
+  if (!isAuthenticated && !isLoginPage) {
+    router.replace("/admin/login");
+  }
+}, [loading, isAuthenticated, isLoginPage]);
 
   if (loading) {
     return (

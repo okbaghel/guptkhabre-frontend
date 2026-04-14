@@ -7,11 +7,11 @@ export default function AdminLogin() {
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/admin/dashboard");
-    }
-  }, [isAuthenticated, router]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     router.push("/admin/dashboard");
+  //   }
+  // }, [isAuthenticated, router]);
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -22,18 +22,21 @@ export default function AdminLogin() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    const res = await login(form);
-    if (res.success) {
-      router.push("/admin/dashboard");
-    } else {
-      setError(res.message || "Login failed");
-    }
-    setLoading(false);
-  };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
+
+  const res = await login(form);
+
+  setLoading(false);
+
+  if (res.success) {
+    router.replace("/admin/dashboard"); // ✅ use replace
+  } else {
+    setError(res.message || "Login failed");
+  }
+};
 
   return (
     <>
