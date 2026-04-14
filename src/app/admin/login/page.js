@@ -7,11 +7,11 @@ export default function AdminLogin() {
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
 
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     router.push("/admin/dashboard");
-  //   }
-  // }, [isAuthenticated, router]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/admin/dashboard");
+    }
+  }, [isAuthenticated, router]);
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ const handleSubmit = async (e) => {
   setLoading(false);
 
   if (res.success) {
-    router.replace("/admin/dashboard"); // ✅ use replace
+    router.push("/admin/dashboard"); // ✅ use replace
   } else {
     setError(res.message || "Login failed");
   }

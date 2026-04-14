@@ -4,6 +4,7 @@ import { apiClient } from "@/services/apiClient";
 export const loginAdmin = async (credentials) => {
   return apiClient("/auth/login", {
     method: "POST",
+    // credentials:"include",
     body: JSON.stringify(credentials),
   });
 };
