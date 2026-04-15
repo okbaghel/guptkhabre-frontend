@@ -14,17 +14,9 @@ export default function AuthProvider({ children }) {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const token = localStorage.getItem("admin_token");
-
-        if (!token) {
-          setUser(null);
-          return;
-        }
-
-        const data = await getMe(token);
+        const data = await getMe(); // ✅ no token needed
         setUser(data.user || null);
       } catch (err) {
-        localStorage.removeItem("admin_token");
         setUser(null);
       } finally {
         setLoading(false);
@@ -39,16 +31,11 @@ export default function AuthProvider({ children }) {
   // =========================
   const login = async (credentials) => {
     try {
-      const data = await loginAdmin(credentials);
+      // ✅ login → backend sets cookie
+      await loginAdmin(credentials);
 
-      if (!data.token) {
-        return { success: false };
-      }
-
-      localStorage.setItem("admin_token", data.token);
-
-      // always trust backend /me
-      const me = await getMe(data.token);
+      // ✅ get user using cookie
+      const me = await getMe();
       setUser(me.user);
 
       return { success: true };
@@ -61,7 +48,13 @@ export default function AuthProvider({ children }) {
   // LOGOUT
   // =========================
   const logout = async () => {
-    localStorage.removeItem("admin_token");
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include", // ✅ send cookie
+      });
+    } catch (err) {}
+
     setUser(null);
   };
 

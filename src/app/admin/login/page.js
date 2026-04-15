@@ -6,10 +6,12 @@ import { useAuth } from "@/context/AuthContext";
 export default function AdminLogin() {
   const { login, isAuthenticated } = useAuth();
   const router = useRouter();
-
+  console.log("login sucess");
   useEffect(() => {
     if (isAuthenticated) {
+      console.log("authenticated now finally");
       router.push("/admin/dashboard");
+      
     }
   }, [isAuthenticated, router]);
 
@@ -29,6 +31,7 @@ const handleSubmit = async (e) => {
 
   const res = await login(form);
 
+  console.log(res);
   setLoading(false);
 
   if (res.success) {

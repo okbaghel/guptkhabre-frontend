@@ -1,16 +1,13 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
 export const apiClient = async (url, options = {}) => {
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("admin_token")
-      : null;
+
 
   const res = await fetch(`${API_BASE}${url}`, {
     ...options,
+    credentials: "include", // 🔥 VERY IMPORTANT
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   });

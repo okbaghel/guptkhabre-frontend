@@ -1,25 +1,16 @@
 import { apiClient } from "@/services/apiClient";
 
-// 🔐 LOGIN ADMIN
+// 🔐 LOGIN
 export const loginAdmin = async (credentials) => {
   return apiClient("/auth/login", {
     method: "POST",
-    // credentials:"include",
     body: JSON.stringify(credentials),
   });
 };
 
-// 👤 GET CURRENT USER
+// 👤 GET USER
 export const getMe = async () => {
-  try {
-    return await apiClient("/auth/me", {
-      method: "GET",
-    });
-  } catch (err) {
-    if (err.status === 401) {
-      // ✅ Not logged in (normal case)
-      return { user: null };
-    }
-    throw err;
-  }
+  return apiClient("/auth/me", {
+    method: "GET",
+  });
 };

@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 
 export function middleware(req) {
   const token = req.cookies.get("token")?.value;
-
+console.log("in middleware file guys");
+console.log(token);
   const { pathname } = req.nextUrl;
 
   // Protect admin routes
