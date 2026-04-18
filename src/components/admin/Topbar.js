@@ -239,6 +239,7 @@ export default function Topbar() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Listen for events dispatched by the mobile bottom bar
   useEffect(() => {
@@ -392,7 +393,19 @@ export default function Topbar() {
               <div className="tb-confirm-sub">You'll be signed out and redirected to the login page.</div>
               <div className="tb-confirm-actions">
                 <button className="tb-confirm-cancel" onClick={() => setShowLogoutConfirm(false)}>Cancel</button>
-                <button className="tb-confirm-signout" onClick={() => { setShowLogoutConfirm(false); logout(); }}>Sign out</button>
+                <button
+                  className="tb-confirm-signout"
+                  onClick={async () => {
+                    setIsLoggingOut(true);
+                    await logout();
+                    setIsLoggingOut(false);
+                    setShowLogoutConfirm(false);
+                    router.replace("/admin/login");
+                  }}
+                  disabled={isLoggingOut}
+                >
+                  {isLoggingOut ? "Signing out..." : "Sign out"}
+                </button>
               </div>
             </div>
           </div>

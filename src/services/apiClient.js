@@ -1,11 +1,10 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL;
 
+
 export const apiClient = async (url, options = {}) => {
-
-
   const res = await fetch(`${API_BASE}${url}`, {
     ...options,
-    credentials: "include", // 🔥 VERY IMPORTANT
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,

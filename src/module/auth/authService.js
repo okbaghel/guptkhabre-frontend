@@ -14,3 +14,9 @@ export const getMe = async () => {
     method: "GET",
   });
 };
+
+export const logoutAdmin = async () => {
+  return apiClient("/auth/logout", {
+    method: "POST",
+  });
+};

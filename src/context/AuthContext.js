@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useEffect, useState } from "react";
-import { loginAdmin, getMe } from "@/module/auth/authService";
+import { loginAdmin, getMe, logoutAdmin } from "@/module/auth/authService";
 
 const AuthContext = createContext();
 
@@ -11,52 +11,45 @@ export default function AuthProvider({ children }) {
   // =========================
   // LOAD USER ON APP START
   // =========================
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const data = await getMe(); // ✅ no token needed
-        setUser(data.user || null);
-      } catch (err) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+useEffect(() => {
+  const loadUser = async () => {
+    try {
+      const data = await getMe();
+      setUser(data.user || null);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadUser();
-  }, []);
+  loadUser();
+}, []);
 
   // =========================
   // LOGIN
   // =========================
-  const login = async (credentials) => {
-    try {
-      // ✅ login → backend sets cookie
-      await loginAdmin(credentials);
+const login = async (credentials) => {
+  try {
+    const data = await loginAdmin(credentials);
+    setUser(data.user);
+    document.cookie = "admin_auth=1; path=/; max-age=604800; samesite=lax";
 
-      // ✅ get user using cookie
-      const me = await getMe();
-      setUser(me.user);
-
-      return { success: true };
-    } catch (err) {
-      return { success: false, message: err.message };
-    }
-  };
-
+    return { success: true };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
+};
   // =========================
   // LOGOUT
   // =========================
-  const logout = async () => {
-    try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include", // ✅ send cookie
-      });
-    } catch (err) {}
-
-    setUser(null);
-  };
+const logout = async () => {
+  try {
+    await logoutAdmin();
+  } catch {}
+  document.cookie = "admin_auth=; path=/; max-age=0; samesite=lax";
+  setUser(null);
+};
 
   return (
     <AuthContext.Provider

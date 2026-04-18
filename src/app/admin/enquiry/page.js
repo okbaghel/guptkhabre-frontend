@@ -65,7 +65,6 @@ function UpdateModal({ enquiry, onClose, onUpdate }) {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
      const res = await fetch(`${API_BASE}/contact/${enquiry._id}`, {
   method: "PUT",
   credentials: "include", // ✅
@@ -212,7 +211,6 @@ function DeleteConfirm({ enquiry, onClose, onDelete }) {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
      const res = await fetch(`${API_BASE}/contact/${enquiry._id}`, {
   method: "DELETE",
   credentials: "include", // ✅
@@ -333,8 +331,6 @@ export default function Enquiry() {
     setLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem("token");
-  
      const res = await fetch(`${API_BASE}/contact`, {
   credentials: "include", // ✅ VERY IMPORTANT
 });

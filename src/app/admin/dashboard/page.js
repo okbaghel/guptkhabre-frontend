@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import Link from 'next/link';
+import { apiClient } from "@/services/apiClient";
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
 
 export default function AdminStoriesPage() {
@@ -21,9 +22,13 @@ export default function AdminStoriesPage() {
   const [error, setError] = useState("");
   const fileRef = useRef();
 
+  
+
   const fetchStories = async () => {
     try {
-      const res = await fetch(`${API_BASE}/stories`);
+      const res = await fetch(`${API_BASE}/stories`,{
+        credentials: "include",
+      });
       const data = await res.json();
       if (data.success) setStories(data.stories);
     } catch {
