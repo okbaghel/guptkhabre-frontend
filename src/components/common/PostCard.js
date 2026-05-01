@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 /* ── helpers ── */
 function formatCount(n = 0) {
@@ -217,6 +218,23 @@ export default function PostCard({ post = {}, onLike }) {
           background: #000;
         }
 
+        /* Read More */
+        .gk-read-more {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 12px;
+          font-weight: 600;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--gk-gold);
+          text-decoration: none;
+          padding: 2px 14px 12px;
+          transition: opacity .15s;
+        }
+        .gk-read-more:hover { opacity: 0.75; }
+
         /* Actions */
         .gk-actions {
           display: flex;
@@ -427,6 +445,16 @@ export default function PostCard({ post = {}, onLike }) {
               </button>
             )}
           </div>
+        )}
+
+        {/* Read More */}
+        {post._id && (
+          <Link href={`/news/${post._id}`} className="gk-read-more">
+            Read Full Article
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </Link>
         )}
 
       </article>

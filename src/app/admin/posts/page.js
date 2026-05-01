@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeContext";
-import { getAdminPosts, deletePost } from "@/module/posts/postService";
+import { getAdminPosts, deletePost, createPost } from "@/module/posts/postService";
 
 // ── Icons ────────────────────────────────────────────────────────────────────
 const EditIcon = () => (
@@ -79,6 +79,15 @@ export default function AllPosts() {
   const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
 
+  // Create post state
+  const [showCreate, setShowCreate] = useState(false);
+  const [createForm, setCreateForm] = useState({ title: "", heading: "", subheading: "", description: "" });
+  const [createFile, setCreateFile] = useState(null);
+  const [createPreview, setCreatePreview] = useState(null);
+  const [createMediaType, setCreateMediaType] = useState("image");
+  const [creating, setCreating] = useState(false);
+  const createFileRef = useRef();
+
   const totalPages = Math.ceil(total / POSTS_PER_PAGE);
 
   // ── Fetch ──────────────────────────────────────────────────────────────────
@@ -126,6 +135,48 @@ setTotal(prev => prev - 1);
       setDeleting(false);
       setDeleteTarget(null);
     }
+  }
+
+  // ── Create post ───────────────────────────────────────────────────────────
+  function handleCreateFile(e) {
+    const f = e.target.files[0];
+    if (!f) return;
+    setCreateFile(f);
+    setCreatePreview(URL.createObjectURL(f));
+    setCreateMediaType(f.type.startsWith("video") ? "video" : "image");
+  }
+
+  async function handleCreate() {
+    if (!createForm.title.trim()) return showToast("Title is required", "error");
+    if (!createFile) return showToast("Media file is required", "error");
+    setCreating(true);
+    try {
+      const fd = new FormData();
+      fd.append("title", createForm.title.trim());
+      if (createForm.heading.trim()) fd.append("heading", createForm.heading.trim());
+      if (createForm.subheading.trim()) fd.append("subheading", createForm.subheading.trim());
+      if (createForm.description.trim()) fd.append("description", createForm.description.trim());
+      fd.append("file", createFile);
+      await createPost(fd);
+      showToast("Post published successfully");
+      setShowCreate(false);
+      setCreateForm({ title: "", heading: "", subheading: "", description: "" });
+      setCreateFile(null);
+      setCreatePreview(null);
+      setPage(1);
+      fetchPosts();
+    } catch (err) {
+      showToast(err.message || "Failed to publish post", "error");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  function closeCreate() {
+    setShowCreate(false);
+    setCreateForm({ title: "", heading: "", subheading: "", description: "" });
+    setCreateFile(null);
+    setCreatePreview(null);
   }
 
   // ── Pagination pages array ─────────────────────────────────────────────────
@@ -702,12 +753,117 @@ setTotal(prev => prev - 1);
           from { opacity: 0; transform: translateX(-50%) translateY(12px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Create modal fields ── */
+        .ap-field { margin-bottom: 14px; }
+        .ap-field label {
+          display: block;
+          font-size: 10.5px;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--ap-label);
+          margin-bottom: 6px;
+        }
+        .ap-field input, .ap-field textarea, .ap-field select {
+          width: 100%;
+          background: var(--ap-input-bg);
+          border: 1px solid var(--ap-input-border);
+          border-radius: 10px;
+          padding: 10px 12px;
+          font-size: 13.5px;
+          font-family: 'Figtree', sans-serif;
+          color: var(--ap-text);
+          outline: none;
+          transition: border-color var(--transition), box-shadow var(--transition);
+          resize: vertical;
+        }
+        .ap-field input::placeholder, .ap-field textarea::placeholder { color: var(--ap-label); }
+        .ap-field input:focus, .ap-field textarea:focus, .ap-field select:focus {
+          border-color: var(--ap-input-focus);
+          box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+        }
+        .ap-field textarea { min-height: 110px; }
+
+        .ap-upload-zone {
+          border: 2px dashed var(--ap-card-border);
+          border-radius: 12px;
+          aspect-ratio: 16/9;
+          display: flex; align-items: center; justify-content: center;
+          cursor: pointer; overflow: hidden; margin-bottom: 14px;
+          transition: border-color var(--transition);
+          background: var(--ap-input-bg);
+          position: relative;
+        }
+        .ap-upload-zone:hover { border-color: var(--ap-accent); }
+        .ap-upload-zone img, .ap-upload-zone video {
+          width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;
+        }
+        .ap-upload-hint {
+          color: var(--ap-label);
+          font-size: 13px; text-align: center; padding: 16px;
+          display: flex; flex-direction: column; align-items: center; gap: 6px;
+        }
+        .ap-upload-hint svg { opacity: 0.5; }
+
+        .ap-create-modal {
+          background: var(--ap-card);
+          border: 1px solid var(--ap-card-border);
+          border-radius: 20px;
+          padding: 24px;
+          width: 100%; max-width: 520px;
+          max-height: 90vh; overflow-y: auto;
+          animation: modalIn 0.2s cubic-bezier(0.4,0,0.2,1);
+        }
+        .ap-create-modal::-webkit-scrollbar { width: 4px; }
+        .ap-create-modal::-webkit-scrollbar-thumb { background: var(--ap-input-border); border-radius: 4px; }
+
+        .ap-create-title {
+          font-family: 'Syne', sans-serif;
+          font-size: 18px; font-weight: 700;
+          color: var(--ap-text);
+          margin-bottom: 4px;
+        }
+        .ap-create-sub {
+          font-size: 12.5px; color: var(--ap-muted);
+          margin-bottom: 20px;
+        }
+
+        .ap-create-actions { display: flex; gap: 8px; margin-top: 18px; }
+        .ap-create-cancel {
+          flex: 1; height: 42px;
+          background: var(--ap-btn-bg);
+          border: 1px solid var(--ap-btn-border);
+          border-radius: 10px;
+          color: var(--ap-text);
+          font-size: 13.5px; font-weight: 500;
+          font-family: 'Figtree', sans-serif;
+          cursor: pointer;
+          transition: opacity var(--transition);
+        }
+        .ap-create-cancel:hover { opacity: 0.75; }
+        .ap-create-submit {
+          flex: 2; height: 42px;
+          background: var(--ap-accent);
+          border: none; border-radius: 10px;
+          color: #fff;
+          font-size: 13.5px; font-weight: 600;
+          font-family: 'Figtree', sans-serif;
+          cursor: pointer;
+          display: flex; align-items: center; justify-content: center; gap: 7px;
+          transition: opacity var(--transition);
+          box-shadow: 0 0 20px rgba(124,58,237,0.25);
+        }
+        .ap-create-submit:hover:not(:disabled) { opacity: 0.88; }
+        .ap-create-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* ── Responsive ── */
         @media (max-width: 640px) {
           .ap-desktop-table { display: none; }
           .ap-mobile-list { display: block; }
           .ap-pag-info { display: none; }
+          .ap-create-modal { padding: 18px; border-radius: 16px; }
         }
         @media (min-width: 641px) {
           .ap-mobile-list { display: none; }
@@ -724,7 +880,12 @@ setTotal(prev => prev - 1);
               <h1 className="ap-title">All <span>Posts</span></h1>
               <p className="ap-subtitle">Manage and curate your publication's content</p>
             </div>
-         
+            <button className="ap-new-btn" onClick={() => setShowCreate(true)}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              New Post
+            </button>
           </div>
         </div>
 
@@ -1002,6 +1163,104 @@ setTotal(prev => prev - 1);
                     </svg>
                   ) : <DeleteIcon />}
                   {deleting ? "Deleting…" : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Create Post Modal ── */}
+        {showCreate && (
+          <div className="ap-modal-overlay" onClick={closeCreate}>
+            <div className="ap-create-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="ap-create-title">New Post</div>
+              <div className="ap-create-sub">Fill in the details below and upload media to publish.</div>
+
+              {/* Media upload */}
+              <div
+                className="ap-upload-zone"
+                onClick={() => createFileRef.current?.click()}
+              >
+                {createPreview ? (
+                  createMediaType === "video" ? (
+                    <video src={createPreview} muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+                  ) : (
+                    <img src={createPreview} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover", position: "absolute", inset: 0 }} />
+                  )
+                ) : (
+                  <div className="ap-upload-hint">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span style={{ fontWeight: 600, color: "var(--ap-accent-light)" }}>Click to upload</span>
+                    <span>Image or Video (max 100MB)</span>
+                  </div>
+                )}
+                <input
+                  ref={createFileRef}
+                  type="file"
+                  accept="image/*,video/*"
+                  style={{ display: "none" }}
+                  onChange={handleCreateFile}
+                />
+              </div>
+
+              <div className="ap-field">
+                <label>Title *</label>
+                <input
+                  type="text"
+                  placeholder="News headline or post title..."
+                  value={createForm.title}
+                  onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                />
+              </div>
+
+              <div className="ap-field">
+                <label>Heading</label>
+                <input
+                  type="text"
+                  placeholder="Main heading for the article..."
+                  value={createForm.heading}
+                  onChange={(e) => setCreateForm({ ...createForm, heading: e.target.value })}
+                />
+              </div>
+
+              <div className="ap-field">
+                <label>Subheading</label>
+                <input
+                  type="text"
+                  placeholder="Supporting subheading or summary line..."
+                  value={createForm.subheading}
+                  onChange={(e) => setCreateForm({ ...createForm, subheading: e.target.value })}
+                />
+              </div>
+
+              <div className="ap-field">
+                <label>Description</label>
+                <textarea
+                  placeholder="Write the full article content here..."
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                />
+              </div>
+
+              <div className="ap-create-actions">
+                <button className="ap-create-cancel" onClick={closeCreate}>Cancel</button>
+                <button
+                  className="ap-create-submit"
+                  onClick={handleCreate}
+                  disabled={creating}
+                >
+                  {creating ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: "spin 0.7s linear infinite" }}>
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                  ) : (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/>
+                    </svg>
+                  )}
+                  {creating ? "Publishing…" : "Publish Post"}
                 </button>
               </div>
             </div>

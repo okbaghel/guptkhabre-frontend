@@ -9,6 +9,11 @@ export const getPosts = async () => {
   return [];
 };
 
+export const getPostById = async (id) => {
+  const data = await apiClient(`/posts/${id}`);
+  return data.post || data;
+};
+
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
 /**
