@@ -4,7 +4,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 async function getServices() {
   try {
-    const res = await fetch(`${API_URL}/services`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/services`, { next: { revalidate: 120 } });
     if (!res.ok) throw new Error("Failed to fetch services");
     return res.json();
   } catch (error) {
