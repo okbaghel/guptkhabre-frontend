@@ -7,7 +7,7 @@ import Highlight              from "@tiptap/extension-highlight";
 import Link                   from "@tiptap/extension-link";
 import Image                  from "@tiptap/extension-image";
 import Placeholder            from "@tiptap/extension-placeholder";
-import { TextStyle }          from "@tiptap/extension-text-style"; // named export in Tiptap 3
+import { TextStyle, FontSize } from "@tiptap/extension-text-style"; // named exports in Tiptap 3
 import Color                  from "@tiptap/extension-color";
 import { useCallback, useState } from "react";
 
@@ -75,6 +75,7 @@ export default function RichEditor({ content = "", onChange, placeholder = "Writ
       Link.configure({ openOnClick: false, autolink: true }),
       Image.configure({ inline: false }),
       TextStyle,
+      FontSize,
       Color,
       Placeholder.configure({ placeholder }),
     ],
@@ -291,8 +292,10 @@ export default function RichEditor({ content = "", onChange, placeholder = "Writ
         }
 
         @media (max-width: 480px) {
-          .re-prose { min-height: 160px; font-size: 13.5px; }
+          .re-prose { min-height: 140px; max-height: 280px; font-size: 13.5px; }
           .re-toolbar { gap: 1px; padding: 6px 8px; }
+          .re-select { font-size: 11px; padding: 0 4px; }
+          .re-btn { width: 26px; height: 26px; }
         }
       `}</style>
 
@@ -315,6 +318,28 @@ export default function RichEditor({ content = "", onChange, placeholder = "Writ
             <option value="h2">Heading 2</option>
             <option value="h3">Heading 3</option>
             <option value="h4">Heading 4</option>
+          </select>
+
+          {/* Font size selector */}
+          <select
+            className="re-select"
+            style={{ width: 80 }}
+            value={editor.getAttributes("textStyle").fontSize || ""}
+            onChange={(e) => {
+              if (!e.target.value) editor.chain().focus().unsetFontSize().run();
+              else editor.chain().focus().setFontSize(e.target.value).run();
+            }}
+          >
+            <option value="">Size</option>
+            <option value="12px">12px</option>
+            <option value="14px">14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="20px">20px</option>
+            <option value="24px">24px</option>
+            <option value="28px">28px</option>
+            <option value="32px">32px</option>
+            <option value="40px">40px</option>
           </select>
 
           <Sep />

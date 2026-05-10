@@ -369,7 +369,9 @@ export default function AllPosts() {
           .ap-desktop-table { display:none; }
           .ap-mobile-list { display:block; }
           .ap-pag-info { display:none; }
-          .ap-create-modal { padding:16px; border-radius:16px; }
+          .ap-create-overlay { align-items:flex-end; padding:0; }
+          .ap-create-modal { padding:20px 16px 36px; border-radius:20px 20px 0 0; max-height:90vh; -webkit-overflow-scrolling:touch; }
+          .ap-upload-zone { aspect-ratio:unset; height:140px; }
         }
         @media (min-width:641px) {
           .ap-mobile-list { display:none; }
@@ -591,7 +593,7 @@ export default function AllPosts() {
 
         {/* ── Create Post Modal ── */}
         {showCreate && (
-          <div className="ap-modal-overlay" onClick={closeCreate}>
+          <div className="ap-modal-overlay ap-create-overlay" onClick={closeCreate}>
             <div className="ap-create-modal" onClick={(e) => e.stopPropagation()}>
               <div className="ap-create-title">New Post</div>
               <div className="ap-create-sub">Fill in the details below and upload media to publish.</div>

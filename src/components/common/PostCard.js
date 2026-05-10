@@ -23,8 +23,8 @@ function timeAgo(dateStr) {
 /* ── icons ── */
 const HeartIcon = ({ filled }) => (
   <svg width="20" height="20" viewBox="0 0 24 24"
-    fill={filled ? "#c9a96e" : "none"}
-    stroke={filled ? "#c9a96e" : "currentColor"}
+    fill={filled ? "#e11d48" : "none"}
+    stroke={filled ? "#e11d48" : "currentColor"}
     strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
   </svg>
@@ -100,17 +100,49 @@ function ShareSheet({ url, title, onClose }) {
 }
 
 /* ── PostCard ── */
-export default function PostCard({ post = {}, onLike }) {
-  const [liked, setLiked]         = useState(post.isLiked || false);
+export default function PostCard({ post = {} }) {
+  const [liked, setLiked] = useState(() => {
+    if (typeof window === "undefined" || !post._id) return false;
+    try {
+      return JSON.parse(localStorage.getItem("gk_liked") || "[]").includes(post._id);
+    } catch { return false; }
+  });
   const [likeCount, setLikeCount] = useState(post.likes || 0);
+  const [liking,    setLiking]    = useState(false);
   const [showShare, setShowShare] = useState(false);
-  const [showFull, setShowFull]   = useState(false);
+  const [showFull,  setShowFull]  = useState(false);
 
-  const handleLike = () => {
+  const handleLike = async () => {
+    if (liking || !post._id) return;
     const next = !liked;
     setLiked(next);
     setLikeCount((c) => (next ? c + 1 : c - 1));
-    onLike?.(post._id, next);
+    setLiking(true);
+    try {
+      const res  = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/posts/${post._id}/like`,
+        { method: "POST", credentials: "include" }
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setLikeCount(data.likes);
+        setLiked(data.liked);
+        try {
+          const ids = JSON.parse(localStorage.getItem("gk_liked") || "[]");
+          if (data.liked  && !ids.includes(post._id)) ids.push(post._id);
+          if (!data.liked) { const i = ids.indexOf(post._id); if (i !== -1) ids.splice(i, 1); }
+          localStorage.setItem("gk_liked", JSON.stringify(ids));
+        } catch {}
+      } else {
+        setLiked(!next);
+        setLikeCount((c) => (next ? c - 1 : c + 1));
+      }
+    } catch {
+      setLiked(!next);
+      setLikeCount((c) => (next ? c - 1 : c + 1));
+    } finally {
+      setLiking(false);
+    }
   };
 
   const caption   = post.title || "";
@@ -268,10 +300,17 @@ export default function PostCard({ post = {}, onLike }) {
         .gk-btn:active { transform: scale(0.91); }
 
         .gk-btn.liked {
-          color: var(--gk-gold);
-          background: var(--gk-gold-d);
-          border-color: rgba(201,169,110,0.3);
+          color: #e11d48;
+          background: rgba(225,29,72,0.10);
+          border-color: rgba(225,29,72,0.28);
         }
+        @keyframes gk-like-pop {
+          0%   { transform: scale(1); }
+          40%  { transform: scale(1.32); }
+          70%  { transform: scale(0.88); }
+          100% { transform: scale(1); }
+        }
+        .gk-btn.liked svg { animation: gk-like-pop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
 
         /* Caption */
         .gk-caption {
@@ -422,7 +461,16 @@ export default function PostCard({ post = {}, onLike }) {
 
         {/* Actions */}
         <div className="gk-actions">
-          
+          <button
+            className={`gk-btn${liked ? " liked" : ""}`}
+            onClick={handleLike}
+            disabled={liking}
+            aria-label={liked ? "Unlike" : "Like"}
+            style={{ minWidth: 72 }}
+          >
+            <HeartIcon filled={liked} />
+            <span>{formatCount(likeCount)}</span>
+          </button>
 
           <button
             className="gk-btn"
@@ -437,7 +485,7 @@ export default function PostCard({ post = {}, onLike }) {
         {/* Caption */}
         {caption && (
           <div className="gk-caption">
-            <b>{post.author?.name || "Admin"}</b>
+            <b>{post.author?.name || " "}</b>
             {displayed}
             {isLong && (
               <button className="gk-more" onClick={() => setShowFull((v) => !v)}>
