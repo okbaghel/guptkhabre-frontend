@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import ShareButton from "./ShareButton";
+import ViewTracker from "@/components/common/ViewTracker";
 
 // Cache each article for 60 s on the Next.js data cache (Vercel ISR).
 // The backend Redis layer gives us another cache hit before MongoDB is touched.
@@ -199,8 +200,91 @@ export default async function NewsDetailPage({ params }) {
           font-size: clamp(15px, 2.2vw, 17px);
           line-height: 1.88;
           color: var(--text-soft);
-          white-space: pre-wrap;
           word-break: break-word;
+        }
+
+        /* ── Rich-content typography (Tiptap HTML output) ── */
+        .nd-rich-content h1,
+        .nd-rich-content h2,
+        .nd-rich-content h3,
+        .nd-rich-content h4 {
+          font-family: 'DM Serif Display', serif;
+          color: var(--text-primary);
+          line-height: 1.25;
+          margin: 1.5em 0 0.5em;
+        }
+        .nd-rich-content h1 { font-size: clamp(22px, 4vw, 32px); }
+        .nd-rich-content h2 { font-size: clamp(19px, 3.5vw, 27px); }
+        .nd-rich-content h3 { font-size: clamp(17px, 3vw, 22px); }
+        .nd-rich-content h4 { font-size: clamp(15px, 2.5vw, 18px); }
+        .nd-rich-content p  { margin: 0 0 1.1em; }
+        .nd-rich-content strong { font-weight: 700; color: var(--text-primary); }
+        .nd-rich-content em     { font-style: italic; opacity: 0.9; }
+        .nd-rich-content u      { text-decoration: underline; }
+        .nd-rich-content s      { text-decoration: line-through; opacity: 0.6; }
+        .nd-rich-content mark {
+          background: rgba(250, 204, 21, 0.25);
+          color: var(--text-primary);
+          border-radius: 3px;
+          padding: 0 3px;
+        }
+        .nd-rich-content a {
+          color: var(--red-bright);
+          text-decoration: underline;
+          text-underline-offset: 3px;
+          transition: opacity 0.15s;
+        }
+        .nd-rich-content a:hover { opacity: 0.75; }
+        .nd-rich-content ul,
+        .nd-rich-content ol {
+          padding-left: 1.6em;
+          margin: 0.6em 0 1.1em;
+        }
+        .nd-rich-content ul { list-style: disc; }
+        .nd-rich-content ol { list-style: decimal; }
+        .nd-rich-content li { margin-bottom: 0.35em; }
+        .nd-rich-content blockquote {
+          border-left: 3px solid var(--red);
+          margin: 1.4em 0;
+          padding: 0.6em 0 0.6em 1.1em;
+          color: var(--text-muted);
+          font-style: italic;
+        }
+        .nd-rich-content code {
+          font-family: 'Courier New', monospace;
+          font-size: 0.88em;
+          background: rgba(255,255,255,0.07);
+          border: 1px solid var(--border-glass);
+          border-radius: 4px;
+          padding: 1px 5px;
+        }
+        .nd-rich-content pre {
+          background: #0d0d0d;
+          border: 1px solid var(--border-glass);
+          border-radius: 10px;
+          padding: 16px 18px;
+          overflow-x: auto;
+          margin: 1.2em 0;
+        }
+        .nd-rich-content pre code {
+          background: none;
+          border: none;
+          padding: 0;
+          font-size: 0.86em;
+          color: #e2e8f0;
+        }
+        .nd-rich-content img {
+          max-width: 100%;
+          height: auto;
+          border-radius: 10px;
+          margin: 1em 0;
+          display: block;
+        }
+        [data-gk-theme="light"] .nd-rich-content code {
+          background: rgba(0,0,0,0.06);
+        }
+        [data-gk-theme="light"] .nd-rich-content pre {
+          background: #1e1e2e;
         }
 
         /* ── Fallback title ── */
@@ -327,10 +411,16 @@ export default async function NewsDetailPage({ params }) {
             <div className="nd-rule" />
           )}
 
-          {/* Body */}
+          {/* Body — rendered as rich HTML from Tiptap */}
           {post.description && (
-            <div className="nd-body">{post.description}</div>
+            <div
+              className="nd-body nd-rich-content"
+              dangerouslySetInnerHTML={{ __html: post.description }}
+            />
           )}
+
+          {/* View tracker — fire-and-forget, renders nothing */}
+          <ViewTracker postId={post._id} />
 
           {/* Caption box */}
           {post.heading && post.title && (
